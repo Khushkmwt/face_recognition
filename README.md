@@ -35,7 +35,7 @@ A **Face Recognition-based Attendance System** built using **Flask, OpenCV, Medi
 
 ```
 📂 face-recognition-attendance
-│── backend/                     # Backend (Flask API)
+│── face-attendance-backend/     # Backend (Flask API)
 │   ├── app.py                   # Main Flask application
 │   ├── db.py                     # Database connection (MongoDB)
 │   ├── face_recognition.py       # Face recognition logic
@@ -44,7 +44,7 @@ A **Face Recognition-based Attendance System** built using **Flask, OpenCV, Medi
 │   ├── .gitignore                # Ignore unnecessary files
 │   └── uploads/                  # Temporary storage for uploaded images
 │
-│── frontend/                     # Frontend (React/Vite or HTML-CSS-JS)
+│── face-attendance-frontend/     # Frontend (React/Vite or HTML-CSS-JS)
 │   ├── src/                       # Source files
 │   ├── public/                    # Public assets
 │   ├── package.json               # Dependencies for frontend
@@ -60,14 +60,14 @@ A **Face Recognition-based Attendance System** built using **Flask, OpenCV, Medi
 
 ### **1️⃣ Clone the Repository**  
 ```bash
-git clone https://github.com/your-username/face-recognition-attendance.git  
+git clone https://github.com/Khushkmwt/face_recognition.git
 cd face-recognition-attendance
 ```
 
 ### **2️⃣ Backend Setup (Flask + MongoDB)**  
 #### **🔹 Install Dependencies**  
 ```bash
-cd backend
+cd face-attendance-backend
 pip install -r requirements.txt
 ```
 
@@ -89,7 +89,7 @@ python app.py
 ### **3️⃣ Frontend Setup (React or Vanilla JS)**
 #### **🔹 React Setup**
 ```bash
-cd frontend
+cd face-attendance-frontend
 npm install
 npm run dev
 ```
@@ -110,7 +110,7 @@ npm run dev
 ---
 
 ## **📌 Screenshots & Demo**  
-🚀 **Coming soon...** (You can add images or GIFs showing the system in action)
+🚀 **Coming soon...** 
 
 ---
 
@@ -123,13 +123,8 @@ npm run dev
 ---
 
 ## **📌 Contributors**  
-👤 **Your Name** – [GitHub](https://github.com/your-username)  
+👤 **Dilkhush kumawat** – [GitHub](https://github.com/Khushkmwt)  
 
 ---
 
-## **📌 License**  
-📝 This project is licensed under the **MIT License**.  
 
----
-
-Let me know if you need any modifications! 🚀
