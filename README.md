@@ -5,8 +5,8 @@ A **Face Recognition-based Attendance System** built using **Flask, OpenCV, Medi
 ---
 
 ## **📌 Features**  
-✅ **Face Registration** – Users can register their face to be recognized later.  
-✅ **Face Recognition** – Recognizes faces in real-time using DeepFace and Mediapipe.  
+✅ **Face Registration** – Users can register their face to be recognized later.
+✅ **Face Recognition** – Recognizes faces in a real-time using DeepFace and Mediapipe.  
 ✅ **Mark Attendance** – Automatically logs attendance when a face is detected.  
 ✅ **View Attendance** – Fetches all recorded attendance logs with names and timestamps.  
 ✅ **Delete Attendance Records** – Allows clearing all attendance records.  
