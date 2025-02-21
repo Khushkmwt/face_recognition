@@ -110,7 +110,13 @@ npm run dev
 ---
 
 ## **📌 Screenshots & Demo**  
-🚀 **Coming soon...** 
+
+![Screenshot 2025-02-21 214730](https://github.com/user-attachments/assets/8cf88797-3e64-49cc-b0ae-e88e0b238176)
+![Screenshot 2025-02-21 214803](https://github.com/user-attachments/assets/fbba6064-34cf-4cb0-9cac-b5c3cc2d0308)
+![Screenshot 2025-02-21 214826](https://github.com/user-attachments/assets/aca1f34e-3f34-4dcc-92e5-5aa8c9c61a46)
+
+
+
 
 ---
 
