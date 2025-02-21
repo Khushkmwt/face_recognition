@@ -1,0 +1,29 @@
+# Ignore Python Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+venv/
+env/
+
+# Ignore Logs and Temporary Files
+*.log
+*.csv
+*.sqlite3
+*.db
+
+# Environment Variables
+.env
+
+# Ignore Uploaded Files (Optional)
+uploads/
+
+# VS Code settings (optional)
+.vscode/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore Jupyter Notebook checkpoints (if used)
+.ipynb_checkpoints/
