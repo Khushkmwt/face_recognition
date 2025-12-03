@@ -6,8 +6,13 @@ from controllers.attendance_controller import attendance_bp
 from controllers.register_controller import register_bp
 from controllers.face_controller import face_bp   # <--- ADD THIS
 
+from services.embedding_store import load_all_embeddings
+
 app = Flask(__name__)
 CORS(app)
+
+load_all_embeddings()
+print("✅ Embeddings loaded into memory!")
 
 # Register routes
 app.register_blueprint(attendance_bp)

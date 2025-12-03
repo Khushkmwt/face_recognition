@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import Webcam from "react-webcam";
+import { BarLoader } from "react-spinners";
 
 const Register = () => {
   const webcamRef = useRef(null);
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
   const [message, setMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const capture = () => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -27,6 +29,8 @@ const Register = () => {
       return;
     }
 
+    setLoading(true);
+
     const imageFile = dataURLtoFile(image, "register.jpg");
     const formData = new FormData();
     formData.append("image", imageFile);
@@ -37,16 +41,22 @@ const Register = () => {
         method: "POST",
         body: formData,
       });
+
       const data = await response.json();
       setMessage(data.message);
     } catch (error) {
       console.error("Error registering face:", error);
+      setMessage("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-white via-white/70 to-teal-100 px-6">
-      <h2 className="text-3xl font-semibold text-teal-800 mb-6">Register a New Face</h2>
+      <h2 className="text-3xl font-semibold text-teal-800 mb-6">
+        Register a New Face
+      </h2>
 
       <input
         type="text"
@@ -54,9 +64,9 @@ const Register = () => {
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="mb-4 p-3 border border-teal-300 rounded-lg shadow-sm w-72 text-center"
+        disabled={loading}
       />
 
-      {/* If image exists → show captured image. Otherwise → show live webcam */}
       {!image ? (
         <Webcam
           ref={webcamRef}
@@ -75,14 +85,20 @@ const Register = () => {
         {!image ? (
           <button
             onClick={capture}
-            className="px-6 py-3 bg-teal-600 text-white rounded-lg text-lg shadow-md hover:bg-teal-700 transition"
+            disabled={loading}
+            className={`px-6 py-3 bg-teal-600 text-white rounded-lg text-lg shadow-md transition ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             Capture Image
           </button>
         ) : (
           <button
             onClick={() => setImage(null)}
-            className="px-6 py-3 bg-yellow-500 text-white rounded-lg text-lg shadow-md hover:bg-yellow-600 transition"
+            disabled={loading}
+            className={`px-6 py-3 bg-yellow-500 text-white rounded-lg text-lg shadow-md hover:bg-yellow-600 transition ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             Retake
           </button>
@@ -90,13 +106,26 @@ const Register = () => {
 
         <button
           onClick={handleSubmit}
-          className="px-6 py-3 bg-teal-400 text-white rounded-lg text-lg shadow-md hover:bg-teal-500 transition"
+          disabled={loading}
+          className={`px-6 py-3 text-white rounded-lg text-lg shadow-md transition
+            ${
+              loading
+                ? "bg-teal-300 cursor-not-allowed"
+                : "bg-teal-400 hover:bg-teal-500"
+            }`}
         >
-          Register Face
+          {loading ? "Please wait..." : "Register Face"}
         </button>
       </div>
 
-      {message && (
+      {/* React Spinner Loader */}
+      {loading && (
+        <div className="mt-6">
+          <BarLoader color="#0d9488" height={6} width={180} />
+        </div>
+      )}
+
+      {message && !loading && (
         <div className="mt-6 p-4 bg-white shadow-lg rounded-lg text-center text-teal-700 font-semibold">
           {message}
         </div>

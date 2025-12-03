@@ -16,12 +16,17 @@ const Navbar = () => {
     <nav className="bg-white/70 backdrop-blur-lg shadow-md fixed top-0 left-0 w-full z-50 border-b border-white/20">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-        {/* Logo */}
+        {/* Logo + Title */}
         <Link 
           to="/" 
-          className="text-2xl font-semibold tracking-wide text-teal-700 hover:text-teal-900 transition"
+          className="flex items-center gap-3 text-2xl font-semibold tracking-wide text-teal-700 hover:text-teal-900 transition"
         >
-          Face-Attendance
+          <img
+            src="/logo.png"
+            alt="FaceTrackAI Logo"
+            className="w-12 h-12 object-contain"
+          />
+          FaceTrackAI
         </Link>
 
         {/* Desktop Menu */}

@@ -1,11 +1,14 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+
 import re
 import numpy as np
+from deepface import DeepFace
 from config.cloudinary_config import cloudinary
 import cloudinary.uploader
-from deepface import DeepFace
 from database.mongo import faces_collection
-
+from services.embedding_store import add_embedding, best_match
 
 # ----------------------------------------
 # Helper: sanitize Cloudinary public_id
@@ -18,12 +21,24 @@ def sanitize_public_id(name: str) -> str:
 
 
 # ----------------------------------------
-# Cosine similarity
+# Preload ArcFace model ONCE
 # ----------------------------------------
-def cosine_similarity(v1, v2):
-    v1 = np.array(v1)
-    v2 = np.array(v2)
-    return float(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+_ARCFACE_MODEL = DeepFace.build_model("ArcFace")
+
+
+def _get_embedding(image_path: str):
+    """
+    Get ArcFace embedding using preloaded model.
+    """
+    reps = DeepFace.represent(
+    img_path=image_path,
+    model_name="ArcFace",
+    enforce_detection=False
+   )
+
+    if not reps:
+        return None
+    return reps[0]["embedding"]
 
 
 # ----------------------------------------
@@ -41,25 +56,25 @@ def register_face(image_path, name):
                 public_id=safe_name,
                 overwrite=True
             )
-
         cloud_url = result["secure_url"]
 
         # 2️⃣ Generate embedding
-        embedding_obj = DeepFace.represent(
-            img_path=image_path,
-            model_name="ArcFace",
-            enforce_detection=False
-        )[0]
-
-        embedding = embedding_obj["embedding"]
+        embedding = _get_embedding(image_path)
+        if embedding is None:
+            print("No face found during registration.")
+            return None
 
         # 3️⃣ Save to MongoDB
-        face_id = faces_collection.insert_one({
+        doc = {
             "name": safe_name,
             "full_name": name,
             "photo_url": cloud_url,
             "embedding": embedding
-        }).inserted_id
+        }
+        face_id = faces_collection.insert_one(doc).inserted_id
+
+        # 4️⃣ Update in-memory cache
+        add_embedding(face_id, embedding)
 
         return face_id
 
@@ -69,38 +84,19 @@ def register_face(image_path, name):
 
 
 # ----------------------------------------
-# Recognize face using embeddings ONLY
+# Recognize face using in-memory embeddings
 # ----------------------------------------
 def recognize_face(image_path):
     try:
-        # 1️⃣ Get embedding for incoming image
-        target = DeepFace.represent(
-            img_path=image_path,
-            model_name="ArcFace",
-            enforce_detection=False
-        )[0]["embedding"]
+        target_embedding = _get_embedding(image_path)
+        if target_embedding is None:
+            return None
+
+        face_id, score = best_match(target_embedding, threshold=0.45)
+        # if you want to debug:
+        # print("Best score:", score)
+        return face_id
+
     except Exception as e:
-        print("Embedding failed:", e)
+        print("Error recognizing face:", e)
         return None
-
-    # 2️⃣ Get all stored embeddings
-    users = list(faces_collection.find({}, {"embedding": 1, "name": 1}))
-
-    if not users:
-        return None
-
-    best_match = None
-    best_score = -1
-
-    # 3️⃣ Compare embeddings
-    for user in users:
-        score = cosine_similarity(target, user["embedding"])
-        if score > best_score:
-            best_score = score
-            best_match = user
-
-    # 4️⃣ Threshold tuning (recommended 0.42–0.5)
-    if best_score < 0.45:
-        return None
-
-    return best_match["_id"]

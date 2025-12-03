@@ -12,7 +12,7 @@ function App() {
       <div className="w-full min-h-screen flex flex-col bg-gray-100">
         <Navbar />
         {/* Added padding to prevent navbar overlap */}
-        <div className="flex-grow pt-20">
+        <div className="flex-grow ">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/attendance" element={<Attendance />} />
