@@ -13,8 +13,13 @@ def register_new_face():
     if not image or not name:
         return {"message": "Image and name are required"}, 400
 
-    image_path = os.path.join(UPLOAD_FOLDER, f"{name}.jpg")
-    image.save(image_path)
+    temp_path = os.path.join(UPLOAD_FOLDER, f"{name}.jpg")
+    image.save(temp_path)
 
-    face_id = register_face(image_path, name)
-    return {"message": f"{name} registered!", "face_id": str(face_id)}
+    try:
+        face_id = register_face(temp_path, name)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+    return {"message": f"{name} registered successfully!", "face_id": str(face_id)}

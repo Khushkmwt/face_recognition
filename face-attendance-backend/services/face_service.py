@@ -1,98 +1,64 @@
 import os
-import shutil
 import re
+import numpy as np
 from config.cloudinary_config import cloudinary
 import cloudinary.uploader
 from deepface import DeepFace
 from database.mongo import faces_collection
-from services.detection_service import detect_faces
-from config.settings import FACES_DB
 
 
 # ----------------------------------------
 # Helper: sanitize Cloudinary public_id
 # ----------------------------------------
 def sanitize_public_id(name: str) -> str:
-    """
-    Cloudinary public_id cannot contain spaces or special characters.
-    This makes the name safe for Cloudinary.
-    """
     name = name.lower()
-    name = re.sub(r"\s+", "_", name)        # spaces → underscores
-    name = re.sub(r"[^\w\-]", "", name)     # remove everything except letters, numbers, _
+    name = re.sub(r"\s+", "_", name)
+    name = re.sub(r"[^\w\-]", "", name)
     return name
 
 
 # ----------------------------------------
-# Face Recognition (DeepFace)
+# Cosine similarity
 # ----------------------------------------
-def recognize_face(image_path):
-    results, _ = detect_faces(image_path)
-    if not results or not results.detections:
-        return None
-
-    try:
-        matches = DeepFace.find(
-            img_path=image_path,
-            db_path=FACES_DB,               # DeepFace uses LOCAL images
-            model_name="ArcFace",
-            enforce_detection=False
-        )
-    except Exception as e:
-        print("DeepFace error:", e)
-        return None
-
-    if not matches or matches[0].empty:
-        return None
-
-    # sort by best match (lowest distance)
-    df = matches[0].sort_values(by="distance")
-    best_match_path = df.iloc[0]["identity"]
-
-    # Normalize Windows/Linux paths
-    best_match_path = best_match_path.replace("\\", "/")
-
-    # Extract file name only
-    filename = os.path.basename(best_match_path)
-    matched_name = os.path.splitext(filename)[0]
-
-    # Find user in DB
-    user = faces_collection.find_one({"name": matched_name})
-    if not user:
-        return None
-
-    return user["_id"]
+def cosine_similarity(v1, v2):
+    v1 = np.array(v1)
+    v2 = np.array(v2)
+    return float(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
 
 
 # ----------------------------------------
-# Register Face (Cloudinary + DeepFace local copy)
+# Register Face (upload + embed + store)
 # ----------------------------------------
 def register_face(image_path, name):
     try:
-        # 1️⃣ Sanitize name for Cloudinary and file system
         safe_name = sanitize_public_id(name)
 
-        # 2️⃣ Upload image to Cloudinary
+        # 1️⃣ Upload to Cloudinary
         with open(image_path, "rb") as f:
-            upload_result = cloudinary.uploader.upload(
-             f,
-             public_id=safe_name,
-             folder="face-attendance",
-             overwrite=True
+            result = cloudinary.uploader.upload(
+                f,
+                folder="face-attendance",
+                public_id=safe_name,
+                overwrite=True
             )
 
-        cloud_url = upload_result["secure_url"]
+        cloud_url = result["secure_url"]
 
-        # 3️⃣ Save a local copy for DeepFace matching
-        os.makedirs(FACES_DB, exist_ok=True)
-        local_path = os.path.join(FACES_DB, f"{safe_name}.jpg")
-        shutil.copy(image_path, local_path)
+        # 2️⃣ Generate embedding
+        embedding_obj = DeepFace.represent(
+            img_path=image_path,
+            model_name="ArcFace",
+            enforce_detection=False
+        )[0]
 
-        # 4️⃣ Insert into MongoDB
+        embedding = embedding_obj["embedding"]
+
+        # 3️⃣ Save to MongoDB
         face_id = faces_collection.insert_one({
-            "name": safe_name,             # sanitized unique identifier
-            "photo_url": cloud_url,        # Cloudinary URL
-            "local_image_path": local_path # local path for DeepFace
+            "name": safe_name,
+            "full_name": name,
+            "photo_url": cloud_url,
+            "embedding": embedding
         }).inserted_id
 
         return face_id
@@ -100,3 +66,41 @@ def register_face(image_path, name):
     except Exception as e:
         print("Error registering face:", e)
         return None
+
+
+# ----------------------------------------
+# Recognize face using embeddings ONLY
+# ----------------------------------------
+def recognize_face(image_path):
+    try:
+        # 1️⃣ Get embedding for incoming image
+        target = DeepFace.represent(
+            img_path=image_path,
+            model_name="ArcFace",
+            enforce_detection=False
+        )[0]["embedding"]
+    except Exception as e:
+        print("Embedding failed:", e)
+        return None
+
+    # 2️⃣ Get all stored embeddings
+    users = list(faces_collection.find({}, {"embedding": 1, "name": 1}))
+
+    if not users:
+        return None
+
+    best_match = None
+    best_score = -1
+
+    # 3️⃣ Compare embeddings
+    for user in users:
+        score = cosine_similarity(target, user["embedding"])
+        if score > best_score:
+            best_score = score
+            best_match = user
+
+    # 4️⃣ Threshold tuning (recommended 0.42–0.5)
+    if best_score < 0.45:
+        return None
+
+    return best_match["_id"]
