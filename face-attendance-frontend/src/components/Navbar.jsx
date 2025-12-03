@@ -4,54 +4,82 @@ import { Link } from "react-router-dom";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const navItems = [
+    { label: "Home", to: "/" },
+    { label: "Mark Attendance", to: "/attendance" },
+    { label: "Register Face", to: "/register" },
+    { label: "Attendance Records", to: "/records" },
+    { label: "Registered Users", to: "/registered-users" }
+  ];
+
   return (
-    <nav className="bg-teal-600 text-white shadow-md fixed top-0 w-full z-50">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="bg-white/70 backdrop-blur-lg shadow-md fixed top-0 left-0 w-full z-50 border-b border-white/20">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-cyan-200">
+        <Link 
+          to="/" 
+          className="text-2xl font-semibold tracking-wide text-teal-700 hover:text-teal-900 transition"
+        >
           Face-Attendance
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6">
-          <Link to="/" className="hover:text-cyan-300 transition">Home</Link>
-          <Link to="/attendance" className="hover:text-cyan-300 transition">Mark Attendance</Link>
-          <Link to="/register" className="hover:text-cyan-300 transition">Register Face</Link>
-          <Link to="/records" className="hover:text-cyan-300 transition">Attendance Records</Link>
-          <Link to="/registered-users" className="hover:text-cyan-300 transition">Registered Users</Link> {/* New Link */}
-        </div>
+        <ul className="hidden md:flex space-x-8 text-lg text-slate-700">
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                className="relative group hover:text-teal-700 transition"
+              >
+                {item.label}
+                <span className="block h-[2px] bg-teal-600 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden focus:outline-none"
+          className="md:hidden text-slate-700 focus:outline-none"
           onClick={() => setIsOpen(!isOpen)}
         >
           <svg
-            className="w-6 h-6"
+            className="w-7 h-7"
             fill="none"
             stroke="currentColor"
+            strokeWidth={2}
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             {isOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
             )}
           </svg>
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
-      {isOpen && (
-        <div className="md:hidden bg-teal-700 text-center py-4">
-          <Link to="/" className="block py-2 hover:text-cyan-300" onClick={() => setIsOpen(false)}>Home</Link>
-          <Link to="/attendance" className="block py-2 hover:text-cyan-300" onClick={() => setIsOpen(false)}>Mark Attendance</Link>
-          <Link to="/register" className="block py-2 hover:text-cyan-300" onClick={() => setIsOpen(false)}>Register Face</Link>
-          <Link to="/records" className="block py-2 hover:text-cyan-300" onClick={() => setIsOpen(false)}>Attendance Records</Link>
-          <Link to="/registered-users" className="block py-2 hover:text-cyan-300" onClick={() => setIsOpen(false)}>Registered Users</Link> {/* New Link */}
-        </div>
-      )}
+      {/* Mobile Dropdown */}
+      <div
+        className={`md:hidden bg-white/70 backdrop-blur-lg transition-all rounded-b-lg shadow ${
+          isOpen ? "max-h-96 py-3" : "max-h-0 overflow-hidden"
+        }`}
+      >
+        <ul className="flex flex-col space-y-2 text-center text-slate-700 text-lg">
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                onClick={() => setIsOpen(false)}
+                className="block py-2 hover:text-teal-700 transition"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 };

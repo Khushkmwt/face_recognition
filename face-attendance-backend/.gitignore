@@ -27,3 +27,6 @@ uploads/
 
 # Ignore Jupyter Notebook checkpoints (if used)
 .ipynb_checkpoints/
+
+# Ignore .pkl files
+*.pkl
